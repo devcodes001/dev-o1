@@ -90,7 +90,7 @@ def main():
 
             
         st.title("Tris")
-        st.logo(image="logotris-min.png", size="large", link="https://playtris.streamlit.app", icon_image="logotris-min.png")
+        
 
         st.markdown("*A Tic Tac Toe Multiplayer game*")
 
