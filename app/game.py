@@ -8,7 +8,7 @@ import random
 @st.cache_resource
 def get_game_sessions():
     return {}
-
+sivani = 'sivani.png'
 
 def initialize_game(mode='pvp'):
     session = {

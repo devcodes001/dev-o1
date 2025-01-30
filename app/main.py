@@ -4,18 +4,47 @@ from urllib.parse import urlencode, quote_plus
 from streamlit_javascript import st_javascript
 import time
 from coolname import generate_slug
-from about import show_about
 from game import game_board, get_game_sessions, initialize_game
 from style import CSS_STYLE
 
-st.set_page_config(page_title="Tris Multiplayer - Tic Tac Toe with Streamlit", page_icon="logotris-min.png", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Happy birthday my love", page_icon="logotris-min.png", layout="wide", initial_sidebar_state="collapsed")
 
 def main():
-    st.title("Happy Birthday Dundu")
-    tab1, tab2, tab3 ,tab4 = st.tabs(["**Home**", "**Data**","**Prediction**", "**Conclusion**"])
+    st.title("🎉 Happy Birthday, Dundu! 🎂", anchor=False)
+    # st.image('dundu.png',width=200)
+    tab1, tab2, tab3, tab4 = st.tabs(["Love You", "Love Vault 💎 ", "Love Odyssey ❤🚀", "Play Together"])
     with tab1:
-        def join_game(session_id):
+        st.subheader("*:blue[Dear love,] :heart:*")
+        col1, col2 = st.columns(2, gap="small")
+        with col1:
+            # main_image
+            st.image("dundu.png")
 
+            st.caption(
+                'kuna kunanne chirikne dundu', unsafe_allow_html=True
+            )
+        with col2:
+            intro_text = """
+            My love, these two years have been the most precious of my life. Through every challenge, our love remained unshaken, and I’m so grateful I chose you. You’ve helped me grow, made me stronger, and filled my world with happiness. I’ll always cherish the love we share. Happy Birthday, my love! May I be blessed with a lifetime of moments to celebrate you. I love you endlessly, today and always, with all my heart. ❤️
+            """
+            st.write(intro_text)
+            audio_file = open("rec.mp3", "rb")
+            audio_bytes = audio_file.read()
+            st.audio(audio_bytes, format="audio/mpeg")
+    with tab3:
+        st.components.v1.iframe("https://whimsical.com/journey-NzZo6sSd9fDHd8Vw7E54H5", height=400, scrolling=True)
+
+
+
+
+
+
+
+
+
+
+    with tab4:
+        def join_game(session_id):
             game_sessions = get_game_sessions()
             if session_id in game_sessions:
                 session = game_sessions[session_id]
@@ -89,7 +118,7 @@ def main():
         current_url = st_javascript("window.location.href")
 
             
-        st.title("Tris")
+        st.title("XOXO")
         
 
         st.markdown("*A Tic Tac Toe Multiplayer game*")
@@ -152,6 +181,4 @@ def main():
 
 
         st.markdown(CSS_STYLE, unsafe_allow_html=True)
-
-        show_about()
 main()
