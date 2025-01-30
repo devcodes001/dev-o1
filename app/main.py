@@ -18,7 +18,7 @@ def main():
         col1, col2 = st.columns(2, gap="small")
         with col1:
             # main_image
-            img = Image.open('dundu.png')
+            img = Image.open('img/dundu.png')
             st.image(img, width=500)
 
             st.caption(
