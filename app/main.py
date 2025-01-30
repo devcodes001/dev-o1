@@ -18,7 +18,7 @@ def main():
         col1, col2 = st.columns(2, gap="small")
         with col1:
             # main_image
-            img = Image.open('img/dundu.png')
+            img = Image.open('../img/dundu.png')
             st.image(img, width=500)
 
             st.caption(
@@ -26,14 +26,14 @@ def main():
             )
         with col2:
             intro_text = """
-            My love, these two years have been the most precious of my life. Through every challenge, our love remained unshaken, and I’m so grateful I chose you. You’ve helped me grow, made me stronger, and filled my world with happiness. I’ll always cherish the love we share. Happy Birthday, my love! May I be blessed with a lifetime of moments to celebrate you. I love you endlessly, today and always, with all my heart. ❤️
+            [My love, these two years have been the most precious of my life. Through every challenge, our love remained unshaken, and I’m so grateful I chose you. You’ve helped me grow, made me stronger, and filled my world with happiness. I’ll always cherish the love we share. Happy Birthday, my love! May I be blessed with a lifetime of moments to celebrate you. I love you endlessly, today and always, with all my heart. ❤️]
             """
             st.write(intro_text)
-            audio_file = open("img/rec.mp3", "rb")
+            audio_file = open("../img/rec.mp3", "rb")
             audio_bytes = audio_file.read()
             st.audio(audio_bytes, format="audio/mpeg")
     with tab3:
-        st.components.v1.iframe("https://whimsical.com/journey-NzZo6sSd9fDHd8Vw7E54H5", height=400, scrolling=True)
+        st.markdown(f'<iframe style="border:none" width="800" height="450" src="https://whimsical.com/embed/NzZo6sSd9fDHd8Vw7E54H5"></iframe>')
 
 
 
