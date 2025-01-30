@@ -33,8 +33,10 @@ def main():
             audio_bytes = audio_file.read()
             st.audio(audio_bytes, format="audio/mpeg")
     with tab3:
-        url = 'https://whimsical.com/journey-NzZo6sSd9fDHd8Vw7E54H5/?embed=true'
-        st.components.v1.iframe(url, width=None, height=600)
+        img = Image.open('img\devdundu.jpg')
+        url = 'https://whimsical.com/journey-NzZo6sSd9fDHd8Vw7E54H5'
+        st.image(img, width=None, height=600)
+        st.markdown(':red[ethil kuthe] :[sunglass]')
 
 
 
