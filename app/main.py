@@ -33,7 +33,7 @@ def main():
             audio_bytes = audio_file.read()
             st.audio(audio_bytes, format="audio/mpeg")
     with tab3:
-        st.markdown(f'<iframe style="border:none" width="800" height="450" src="https://whimsical.com/embed/NzZo6sSd9fDHd8Vw7E54H5"></iframe>')
+        st.markdown(f'<iframe style="border:none" width="800" height="450" src="https://whimsical.com/embed/NzZo6sSd9fDHd8Vw7E54H5/?embed=true"></iframe>')
 
 
 
