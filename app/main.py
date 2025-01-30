@@ -6,7 +6,7 @@ import time
 from coolname import generate_slug
 from game import game_board, get_game_sessions, initialize_game
 from style import CSS_STYLE
-
+from PIL import Image
 st.set_page_config(page_title="Happy birthday my love", page_icon="logotris-min.png", layout="wide", initial_sidebar_state="collapsed")
 
 def main():
@@ -18,7 +18,8 @@ def main():
         col1, col2 = st.columns(2, gap="small")
         with col1:
             # main_image
-            st.image("dundu.png")
+            img = Image.open('dundu.png')
+            st.image(img, width=500)
 
             st.caption(
                 'kuna kunanne chirikne dundu', unsafe_allow_html=True
