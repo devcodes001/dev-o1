@@ -21,7 +21,7 @@ def main():
         col1, col2 = st.columns(2, gap="small")
         with col1:
             # main_image
-            img = Image.open('img/dundu.png')
+            img = Image.open('dundu.png')
             st.image(img, width=500)
 
             st.caption(
@@ -32,7 +32,7 @@ def main():
             My love, these two years have been the most precious of my life. Through every challenge, our love remained unshaken, and I’m so grateful I chose you. You’ve helped me grow, made me stronger, and filled my world with happiness. I’ll always cherish the love we share. Happy Birthday, my love! May I be blessed with a lifetime of moments to celebrate you. I love you endlessly, today and always, with all my heart. ❤️
             """
             st.write(intro_text)
-            audio_file = open("img/rec.mp3", "rb")
+            audio_file = open("rec.mp3", "rb")
             audio_bytes = audio_file.read()
             st.audio(audio_bytes, format="audio/mpeg")
     with tab2:
@@ -43,7 +43,7 @@ def main():
         c = st.text_input('enter the pin babe : ')
         if c=='sivanidev':
             st.markdown("Two years have passed, and a small turn back to our memories brings everything to life again.")
-            img = Image.open('img/devdundu.jpg')
+            img = Image.open('devdundu.jpg')
             st.image(img)
             left, middle, right = st.columns(3)
             if middle.button("evde kuthe myre", icon="😃", type="primary"):
