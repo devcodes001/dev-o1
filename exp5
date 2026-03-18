@@ -1,0 +1,252 @@
+ show tables
+    -> ;
++----------------------+
+| Tables_in_hospital   |
++----------------------+
+| Nurse                |
+| Patient              |
+| Physician            |
+| Physician_Speciality |
+| Ward                 |
++----------------------+
+5 rows in set (0.02 sec)
+
+mysql> select p.pat_ID , w.ward_no from Patient p join Ward w on p.Ward_num = w.ward_no;
++--------+---------+
+| pat_ID | ward_no |
++--------+---------+
+|   1006 |      10 |
+|   1008 |      20 |
+|   1001 |      30 |
+|   1002 |      30 |
+|   1004 |      30 |
+|   1005 |      30 |
+|   1011 |      30 |
+|   1012 |      30 |
+|   1003 |      40 |
+|   1010 |      40 |
+|   1007 |      50 |
+|   1009 |      60 |
++--------+---------+
+12 rows in set (0.00 sec)
+
+mysql> select p.pat_fname,ph.Phy_fname from Patient p join Physician ph on p.phy_id = ph.Phy_ID;
++------------+-----------+
+| pat_fname  | Phy_fname |
++------------+-----------+
+| David      | Rajesh    |
+| Devi       | Rajesh    |
+| Dinesh     | Rajesh    |
+| Ramesh     | Priya     |
+| Priya      | Priya     |
+| Suresh     | Suresh    |
+| Latha      | Suresh    |
+| Saraswathy | Suresh    |
+| Kiran      | Deepa     |
+| Anjali     | Anil      |
+| Thomas     | Sreeja    |
+| Deepak     | Manoj     |
++------------+-----------+
+12 rows in set (0.00 sec)
+
+mysql> select p.* from Patient p join Physician ph on p.phy_id = ph.Phy_ID where p.pat_fname LIKE '%D' AND p.phy_Lname = 'Sreekumar';
+ERROR 1054 (42S22): Unknown column 'p.phy_Lname' in 'where clause'
+mysql> ^C^C^C
+
+^C
+mysql> select * from Physician;
++--------+-----------+-----------+----------------------+----------+--------+
+| Phy_ID | Phy_fname | phy_Lname | address              | salary   | Degree |
++--------+-----------+-----------+----------------------+----------+--------+
+|      1 | Rajesh    | Sreekumar | Kochi, Kerala        | 75000.00 | MD     |
+|      2 | Priya     | Nair      | Trivandrum, Kerala   | 60000.00 | MBBS   |
+|      3 | Suresh    | Pillai    | Kochi, Kerala        | 80000.00 | MD     |
+|      4 | Deepa     | Menon     | Calicut, Kerala      | 55000.00 | MBBS   |
+|      5 | Anil      | Kumar     | Bangalore, Karnataka | 90000.00 | DM     |
+|      6 | Sreeja    | Ravi      | Kochi, Kerala        | 65000.00 | MD     |
+|      7 | Manoj     | Varma     | Trivandrum, Kerala   | 72000.00 | MS     |
+|      8 | Divya     | Sreekumar | Kochi, Kerala        | 58000.00 | MBBS   |
++--------+-----------+-----------+----------------------+----------+--------+
+8 rows in set (0.00 sec)
+
+mysql> select p.* from Patient p join Physician ph on p.phy_id = ph.Phy_ID where p.pat_fname LIKE '%D' AND p.phy_Lname = 'Sreekumar';
+ERROR 1054 (42S22): Unknown column 'p.phy_Lname' in 'where clause'
+mysql> SELECT p.* 
+    -> FROM Patient p 
+    -> JOIN Physician ph 
+    -> ON p.phy_id = ph.Phy_ID 
+    -> WHERE p.pat_fname LIKE '%D' 
+    -> AND ph.phy_Lname = 'Sreekumar';
++--------+-----------+-----------+------+--------+----------+------------+
+| pat_ID | pat_fname | pat_Lname | Age  | phy_id | Ward_num | admit_date |
++--------+-----------+-----------+------+--------+----------+------------+
+|   1001 | David     | Joseph    |   45 |      1 |       30 | 2024-01-15 |
++--------+-----------+-----------+------+--------+----------+------------+
+1 row in set (0.00 sec)
+
+mysql> INSERT INTO Patient 
+    -> VALUES (1013, 'Rahul', 'Dev', 40, 2, 20, '2024-01-27');
+Query OK, 1 row affected (0.15 sec)
+
+mysql> select n.nurse_fname , n.shift from Patient p join ward w ON p.Ward_num = w.ward_no  join Nurse n on w.Nurse_id = n.Nurse_id where p.pat_ID = 1013;
+ERROR 1146 (42S02): Table 'hospital.ward' doesn't exist
+mysql> SELECT n.nurse_fname, n.shift
+    -> FROM Patient p
+    -> JOIN Ward w 
+    -> ON p.Ward_num = w.ward_no
+    -> JOIN Nurse n 
+    -> ON w.Nurse_id = n.Nurse_id
+    -> WHERE p.pat_ID = 1013;
++-------------+---------+
+| nurse_fname | shift   |
++-------------+---------+
+| Beena       | Evening |
++-------------+---------+
+1 row in set (0.02 sec)
+
+mysql> select distinct ph.* from Physicain ph join Patient p on ph.Phy_ID = p.phy_id where ph.salary > 50000;
+ERROR 1146 (42S02): Table 'hospital.Physicain' doesn't exist
+mysql> select distinct ph.* from Physician ph join Patient p on ph.Phy_ID = p.phy_id where ph.salary > 50000;
++--------+-----------+-----------+----------------------+----------+--------+
+| Phy_ID | Phy_fname | phy_Lname | address              | salary   | Degree |
++--------+-----------+-----------+----------------------+----------+--------+
+|      1 | Rajesh    | Sreekumar | Kochi, Kerala        | 75000.00 | MD     |
+|      2 | Priya     | Nair      | Trivandrum, Kerala   | 60000.00 | MBBS   |
+|      3 | Suresh    | Pillai    | Kochi, Kerala        | 80000.00 | MD     |
+|      4 | Deepa     | Menon     | Calicut, Kerala      | 55000.00 | MBBS   |
+|      5 | Anil      | Kumar     | Bangalore, Karnataka | 90000.00 | DM     |
+|      6 | Sreeja    | Ravi      | Kochi, Kerala        | 65000.00 | MD     |
+|      7 | Manoj     | Varma     | Trivandrum, Kerala   | 72000.00 | MS     |
++--------+-----------+-----------+----------------------+----------+--------+
+7 rows in set (0.05 sec)
+
+mysql> select distinct ps.Field_of_specialization from Physician_Speciality ps join Physician ph on ps.Phy_ID = ph.Phy_ID;
++---------------------------+
+| Field_of_specialization   |
++---------------------------+
+| Cardiology                |
+| Internal Medicine         |
+| Pediatrics                |
+| Interventional Cardiology |
+| General Medicine          |
+| Neurology                 |
+| Neurosurgery              |
+| Dermatology               |
+| Orthopedics               |
++---------------------------+
+9 rows in set (0.00 sec)
+
+mysql> select ph.phy_fname, ps.field_of_specialization
+    -> from physician ph
+    -> join physician_speciality ps
+    -> on ph.phy_id = ps.phy_id
+    -> where length(ps.field_of_specialization) < 5;
+ERROR 1146 (42S02): Table 'hospital.physician' doesn't exist
+mysql> select distinct ph.phy_fname, ph.salary from physician ph join patient p on ph.phy_id=p.phy_id;
+ERROR 1146 (42S02): Table 'hospital.physician' doesn't exist
+mysql> select distinct ph.phy_fname, ph.salary from Physician ph join
+ patient p on ph.phy_id=p.phy_id;
+ERROR 1146 (42S02): Table 'hospital.patient' doesn't exist
+mysql> select distinct ph.phy_fname, ph.salary from Physician ph join Patient p on ph.phy_id=p.phy_id;
++-----------+----------+
+| phy_fname | salary   |
++-----------+----------+
+| Rajesh    | 75000.00 |
+| Priya     | 60000.00 |
+| Suresh    | 80000.00 |
+| Deepa     | 55000.00 |
+| Anil      | 90000.00 |
+| Sreeja    | 65000.00 |
+| Manoj     | 72000.00 |
++-----------+----------+
+7 rows in set (0.00 sec)
+
+mysql> select distinct ph.Phy_fname from Physician ph join Patient p on ph.Phy_ID=p.phy_id where length(ph.Phy_fname)=5;
++-----------+
+| Phy_fname |
++-----------+
+| Priya     |
+| Deepa     |
+| Manoj     |
++-----------+
+3 rows in set (0.02 sec)
+
+mysql> select distinct w.ward_name from Ward w join Patient p on w.ward_no=p.Ward_num where w.ward_name not like 'P%';
++-----------------+
+| ward_name       |
++-----------------+
+| General Ward A  |
+| General Ward B  |
+| ICU Cardiac     |
+| Neurology Ward  |
+| Orthopedic Ward |
++-----------------+
+5 rows in set (0.00 sec)
+
+mysql> select distinct n.nurse_fname, n.shift from Nurse n join Ward w on n.Nurse_id=w.Nurse_id;
++-------------+---------+
+| nurse_fname | shift   |
++-------------+---------+
+| Anitha      | Morning |
+| Beena       | Evening |
+| Celine      | Night   |
+| Daisy       | Morning |
+| Elizabeth   | Evening |
+| Fatima      | Night   |
+| Grace       | Morning |
+| Helen       | Evening |
++-------------+---------+
+8 rows in set (0.00 sec)
+
+mysql> select distinct p.* from Patient p join Physician ph on p.phy_id=ph.Phy_ID join Physician_Speciality ps on ph.Phy_ID=ps.Phy_ID where p.Age>60 and ps.Field_of_specialization='Cardiology';
++--------+------------+-----------+------+--------+----------+------------+
+| pat_ID | pat_fname  | pat_Lname | Age  | phy_id | Ward_num | admit_date |
++--------+------------+-----------+------+--------+----------+------------+
+|   1002 | Devi       | Prasad    |   62 |      1 |       30 | 2024-01-16 |
+|   1011 | Dinesh     | Kumar     |   65 |      1 |       30 | 2024-01-25 |
+|   1005 | Latha      | Menon     |   67 |      3 |       30 | 2024-01-19 |
+|   1012 | Saraswathy | Amma      |   70 |      3 |       30 | 2024-01-26 |
++--------+------------+-----------+------+--------+----------+------------+
+4 rows in set (0.00 sec)
+
+mysql> select distinct w.ward_name from Ward w join Patient p on w.ward_no=p.Ward_num where w.No_of_beds>25;
++----------------+
+| ward_name      |
++----------------+
+| General Ward A |
++----------------+
+1 row in set (0.00 sec)
+
+mysql> select p.pat_fname, ph.Phy_fname, w.ward_name from Patient p join Physician ph on p.phy_id=ph.Phy_ID join Ward w on p.Ward_num=w.ward_no;
++------------+-----------+-----------------+
+| pat_fname  | Phy_fname | ward_name       |
++------------+-----------+-----------------+
+| David      | Rajesh    | ICU Cardiac     |
+| Devi       | Rajesh    | ICU Cardiac     |
+| Dinesh     | Rajesh    | ICU Cardiac     |
+| Ramesh     | Priya     | Pediatric Ward  |
+| Priya      | Priya     | Pediatric Ward  |
+| Rahul      | Priya     | General Ward B  |
+| Suresh     | Suresh    | ICU Cardiac     |
+| Latha      | Suresh    | ICU Cardiac     |
+| Saraswathy | Suresh    | ICU Cardiac     |
+| Kiran      | Deepa     | General Ward A  |
+| Anjali     | Anil      | Neurology Ward  |
+| Thomas     | Sreeja    | General Ward B  |
+| Deepak     | Manoj     | Orthopedic Ward |
++------------+-----------+-----------------+
+13 rows in set (0.00 sec)
+
+mysql> select ph.Phy_fname, count(p.pat_ID) from Physician ph join Patient p on ph.Phy_ID=p.phy_id group by ph.Phy_fname;
++-----------+-----------------+
+| Phy_fname | count(p.pat_ID) |
++-----------+-----------------+
+| Rajesh    |               3 |
+| Priya     |               3 |
+| Suresh    |               3 |
+| Deepa     |               1 |
+| Anil      |               1 |
+| Sreeja    |               1 |
+| Manoj     |               1 |
++-----------+-----------------+
+7 rows in set (0.03 sec)

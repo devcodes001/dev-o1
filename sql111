@@ -1,0 +1,542 @@
+CREATE TABLE regions (region_id INT PRIMARY KEY, region_name VARCHAR(50));
+CREATE TABLE countries (country_id CHAR(2) PRIMARY KEY, country_name VARCHAR(50), region_id INT, FOREIGN KEY (region_id) REFERENCES regions(region_id));
+CREATE TABLE locations (location_id INT PRIMARY KEY, street_address VARCHAR(100), postal_code VARCHAR(20), city VARCHAR(50), state_province VARCHAR(50), country_id CHAR(2), FOREIGN KEY (country_id) REFERENCES countries(country_id));
+CREATE TABLE departments (department_id INT PRIMARY KEY, department_name VARCHAR(50), location_id INT, FOREIGN KEY (location_id) REFERENCES locations(location_id));
+CREATE TABLE jobs (job_id VARCHAR(10) PRIMARY KEY, job_title VARCHAR(50), min_salary DECIMAL(10,2), max_salary DECIMAL(10,2));
+CREATE TABLE employees (employee_id INT PRIMARY KEY, first_name VARCHAR(50), last_name VARCHAR(50), email VARCHAR(100), phone_number VARCHAR(20), hire_date DATE, job_id VARCHAR(10), salary DECIMAL(10,2), manager_id INT, department_id INT, FOREIGN KEY (job_id) REFERENCES jobs(job_id), FOREIGN KEY (manager_id) REFERENCES employees(employee_id), FOREIGN KEY (department_id) REFERENCES departments(department_id));
+CREATE TABLE dependents (dependent_id INT PRIMARY KEY, first_name VARCHAR(50), last_name VARCHAR(50), relationship VARCHAR(50), employee_id INT, FOREIGN KEY (employee_id) REFERENCES employees(employee_id));
+
+INSERT INTO regions VALUES (1,'Europe'),(2,'Americas'),(3,'Asia'),(4,'Middle East and Africa');
+
+INSERT INTO countries VALUES ('IT','Italy',1),('US','United States',2),('JP','Japan',3),('IN','India',3),('ZA','South Africa',4);
+
+INSERT INTO locations VALUES (1000,'Via Roma 100','00100','Rome','Lazio','IT'),(1700,'2000 Broadway','94111','San Francisco','California','US'),(1800,'Nishi Shinjuku 3-2','160-0023','Tokyo','Tokyo','JP'),(1900,'Block B, ITPL','560066','Bangalore','Karnataka','IN'),(2000,'1 Mandela Way','8001','Cape Town','Western Cape','ZA'),(2100,'123 Connaught Place','110001','Delhi','Delhi','IN');
+
+INSERT INTO departments VALUES (10,'Administration',1000),(20,'Marketing',1700),(30,'Sales',1700),(40,'Finance',1800),(50,'IT',1900);
+
+INSERT INTO jobs VALUES ('J01','Administrator',10000,15000),('J02','Marketing Specialist',7000,12000),('J03','Sales Manager',12000,18000),('J04','Finance Analyst',10000,14000),('J05','IT Specialist',9000,13000);
+
+INSERT INTO employees VALUES (101,'John','Doe','jdoe@example.com','1234567890','2020-01-15','J01',12000,NULL,10),(102,'Jane','Smith','jsmith@example.com','9876543210','2019-03-10','J02',8000,101,20),(103,'Alice','Johnson','ajohnson@example.com','5556667777','2018-11-25','J03',15000,101,30),(104,'Robert','Taylor','rtaylor@example.com','8889990000','2021-07-01','J04',11000,102,40),(105,'Linda','Williams','lwilliams@example.com','4445556666','2022-05-12','J05',9500,103,50),(106,'Mark','Brown','mbrown@example.com','9998887777','2024-01-10','J05',11000,105,50),(109,'Zara','Ali','zali@example.com','3334445555','2024-02-01','J01',9000,NULL,10),(110,'Ravi','Sharma','rsharma@example.com','9998887777','2024-03-15','J01',8500,NULL,20),(111,'Smith','David','dsmith@example.com','8887776666','2024-04-01','J03',NULL,NULL,40);
+
+INSERT INTO dependents VALUES (1,'Anna','Doe','Daughter',101),(2,'Michael','Smith','Son',102),(3,'Emily','Johnson','Spouse',103),(4,'Sophia','Taylor','Daughter',104),(5,'James','Williams','Son',105);
+
+SELECT * FROM regions;
+SELECT * FROM countries;
+SELECT * FROM locations;
+SELECT * FROM departments;
+SELECT * FROM employees;
+SELECT * FROM dependents;
+SELECT * FROM jobs;
+
+SELECT e.* FROM employees e JOIN departments d ON e.department_id=d.department_id WHERE d.location_id=1700;
+SELECT e.* FROM employees e JOIN departments d ON e.department_id=d.department_id WHERE d.location_id!=1700;
+SELECT * FROM employees WHERE salary=(SELECT MAX(salary) FROM employees);
+SELECT * FROM employees WHERE salary>(SELECT AVG(salary) FROM employees);
+SELECT department_id,department_name FROM departments WHERE department_id IN (SELECT DISTINCT department_id FROM employees WHERE salary>10000);
+SELECT department_id,department_name FROM departments WHERE department_id NOT IN (SELECT DISTINCT department_id FROM employees WHERE salary>10000);
+SELECT * FROM employees WHERE salary>ANY (SELECT MIN(salary) FROM employees WHERE salary IS NOT NULL GROUP BY department_id);
+SELECT * FROM employees WHERE salary>=ALL (SELECT MAX(salary) FROM employees WHERE salary IS NOT NULL GROUP BY department_id);
+SELECT AVG(dept_avg) FROM (SELECT AVG(salary) AS dept_avg FROM employees WHERE salary IS NOT NULL GROUP BY department_id) AS t;
+SELECT first_name,last_name,salary,(SELECT AVG(salary) FROM employees WHERE salary IS NOT NULL) AS avg_salary,salary-(SELECT AVG(salary) FROM employees WHERE salary IS NOT NULL) AS difference FROM employees WHERE salary IS NOT NULL;
+SELECT e1.* FROM employees e1 WHERE e1.salary>(SELECT AVG(e2.salary) FROM employees e2 WHERE e2.department_id=e1.department_id);
+SELECT * FROM employees WHERE employee_id NOT IN (SELECT employee_id FROM dependents);
+SELECT e.first_name,e.last_name,d.department_name FROM employees e JOIN departments d ON e.department_id=d.department_id WHERE e.department_id IN (10,20,30);
+SELECT e.first_name,e.last_name,j.job_title,d.department_name FROM employees e JOIN departments d ON e.department_id=d.department_id JOIN jobs j ON e.job_id=j.job_id WHERE e.department_id IN (10,20,30) AND e.salary>10000;
+SELECT d.department_name,l.street_address,l.postal_code,c.country_name,r.region_name FROM departments d JOIN locations l ON d.location_id=l.location_id JOIN countries c ON l.country_id=c.country_id JOIN regions r ON c.region_id=r.region_id;
+SELECT e.first_name,e.last_name,e.department_id,d.department_name FROM employees e LEFT JOIN departments d ON e.department_id=d.department_id;
+SELECT e.first_name,e.last_name,d.department_name,l.city,l.state_province FROM employees e JOIN departments d ON e.department_id=d.department_id JOIN locations l ON d.location_id=l.location_id WHERE e.first_name LIKE '%Z%';
+SELECT e.first_name,e.last_name,d.department_id,d.department_name FROM departments d LEFT JOIN employees e ON d.department_id=e.department_id;
+SELECT e.first_name AS employee_first_name,m.first_name AS manager_first_name FROM employees e LEFT JOIN employees m ON e.manager_id=m.employee_id;
+SELECT first_name,last_name,department_id FROM employees WHERE department_id=(SELECT department_id FROM employees WHERE last_name='Taylor');
+SELECT j.job_title,CONCAT(e.first_name,' ',e.last_name) AS employee_name,(j.max_salary-e.salary) AS salary_difference FROM employees e JOIN jobs j ON e.job_id=j.job_id WHERE e.salary IS NOT NULL;
+SELECT d.department_name,AVG(e.salary) AS average_salary,COUNT(e.employee_id) AS number_of_employees FROM departments d LEFT JOIN employees e ON d.department_id=e.department_id GROUP BY d.department_id,d.department_name;
+CREATE VIEW delhi_employees AS SELECT CONCAT(e.first_name,' ',e.last_name) AS employee_name,e.employee_id,e.phone_number,j.job_title,d.department_name,CONCAT(m.first_name,' ',m.last_name) AS manager_name FROM employees e JOIN departments d ON e.department_id=d.department_id JOIN locations l ON d.location_id=l.location_id JOIN jobs j ON e.job_id=j.job_id LEFT JOIN employees m ON e.manager_id=m.employee_id WHERE l.city='Delhi';
+SELECT * FROM delhi_employees;
+SELECT * FROM delhi_employees WHERE job_title='Manager' AND department_name='Finance';
+SELECT e.* FROM employees e LEFT JOIN dependents d ON e.employee_id=d.employee_id WHERE d.dependent_id IS NULL;
+SELECT * FROM employees WHERE manager_id=101 UNION SELECT * FROM employees WHERE manager_id=201;
+SELECT DISTINCT e.* FROM employees e JOIN dependents d ON e.employee_id=d.employee_id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mysql> CREATE TABLE regions (region_id INT PRIMARY KEY, region_name VARCHAR(50));
+Query OK, 0 rows affected (0.67 sec)
+
+mysql> CREATE TABLE countries (country_id CHAR(2) PRIMARY KEY, country_name VARCHAR(50), region_id INT, FOREIGN KEY (region_id) REFERENCES regions(region_id));
+Query OK, 0 rows affected (2.00 sec)
+
+mysql> CREATE TABLE locations (location_id INT PRIMARY KEY, street_address VARCHAR(100), postal_code VARCHAR(20), city VARCHAR(50), state_province VARCHAR(50), country_id CHAR(2), FOREIGN KEY (country_id) REFERENCES countries(country_id));
+Query OK, 0 rows affected (0.87 sec)
+
+mysql> CREATE TABLE departments (department_id INT PRIMARY KEY, department_name VARCHAR(50), location_id INT, FOREIGN KEY (location_id) REFERENCES locations(location_id));
+Query OK, 0 rows affected (0.77 sec)
+
+mysql> CREATE TABLE jobs (job_id VARCHAR(10) PRIMARY KEY, job_title VARCHAR(50), min_salary DECIMAL(10,2), max_salary DECIMAL(10,2));
+Query OK, 0 rows affected (0.77 sec)
+
+mysql> CREATE TABLE employees (employee_id INT PRIMARY KEY, first_name VARCHAR(50), last_name VARCHAR(50), email VARCHAR(100), phone_number VARCHAR(20), hire_date DATE, job_id VARCHAR(10), salary DECIMAL(10,2), manager_id INT, department_id INT, FOREIGN KEY (job_id) REFERENCES jobs(job_id), FOREIGN KEY (manager_id) REFERENCES employees(employee_id), FOREIGN KEY (department_id) REFERENCES departments(department_id));
+Query OK, 0 rows affected (1.12 sec)
+
+mysql> CREATE TABLE dependents (dependent_id INT PRIMARY KEY, first_name VARCHAR(50), last_name VARCHAR(50), relationship VARCHAR(50), employee_id INT, FOREIGN KEY (employee_id) REFERENCES employees(employee_id));
+Query OK, 0 rows affected (0.98 sec)
+
+mysql> 
+mysql> INSERT INTO regions VALUES (1,'Europe'),(2,'Americas'),(3,'Asia'),(4,'Middle East and Africa');
+Query OK, 4 rows affected (0.15 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> INSERT INTO countries VALUES ('IT','Italy',1),('US','United States',2),('JP','Japan',3),('IN','India',3),('ZA','South Africa',4);
+Query OK, 5 rows affected (0.13 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> INSERT INTO locations VALUES (1000,'Via Roma 100','00100','Rome','Lazio','IT'),(1700,'2000 Broadway','94111','San Francisco','California','US'),(1800,'Nishi Shinjuku 3-2','160-0023','Tokyo','Tokyo','JP'),(1900,'Block B, ITPL','560066','Bangalore','Karnataka','IN'),(2000,'1 Mandela Way','8001','Cape Town','Western Cape','ZA'),(2100,'123 Connaught Place','110001','Delhi','Delhi','IN');
+Query OK, 6 rows affected (0.13 sec)
+Records: 6  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> INSERT INTO departments VALUES (10,'Administration',1000),(20,'Marketing',1700),(30,'Sales',1700),(40,'Finance',1800),(50,'IT',1900);
+Query OK, 5 rows affected (0.15 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> INSERT INTO jobs VALUES ('J01','Administrator',10000,15000),('J02','Marketing Specialist',7000,12000),('J03','Sales Manager',12000,18000),('J04','Finance Analyst',10000,14000),('J05','IT Specialist',9000,13000);
+Query OK, 5 rows affected (0.12 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> INSERT INTO employees VALUES (101,'John','Doe','jdoe@example.com','1234567890','2020-01-15','J01',12000,NULL,10),(102,'Jane','Smith','jsmith@example.com','9876543210','2019-03-10','J02',8000,101,20),(103,'Alice','Johnson','ajohnson@example.com','5556667777','2018-11-25','J03',15000,101,30),(104,'Robert','Taylor','rtaylor@example.com','8889990000','2021-07-01','J04',11000,102,40),(105,'Linda','Williams','lwilliams@example.com','4445556666','2022-05-12','J05',9500,103,50),(106,'Mark','Brown','mbrown@example.com','9998887777','2024-01-10','J05',11000,105,50),(109,'Zara','Ali','zali@example.com','3334445555','2024-02-01','J01',9000,NULL,10),(110,'Ravi','Sharma','rsharma@example.com','9998887777','2024-03-15','J01',8500,NULL,20),(111,'Smith','David','dsmith@example.com','8887776666','2024-04-01','J03',NULL,NULL,40);
+Query OK, 9 rows affected (0.13 sec)
+Records: 9  Duplicates: 0  Warnings: 0
+
+mysql> 
+mmysql> INSERT INTO dependents VALUES (1,'Anna','Doe','Daughter',101),(2,'Michael','Smith','Son',102),(3,'Emily','Johnson','Spouse',103),(4,'Sophia','Taylor','Daughter',104),(5,'James','Williams','Son',105);
+Query OK, 5 rows affected (0.12 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> SELECT * FROM regions;
++-----------+------------------------+
+| region_id | region_name            |
++-----------+------------------------+
+|         1 | Europe                 |
+|         2 | Americas               |
+|         3 | Asia                   |
+|         4 | Middle East and Africa |
++-----------+------------------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT * FROM countries;
++------------+---------------+-----------+
+| country_id | country_name  | region_id |
++------------+---------------+-----------+
+| IN         | India         |         3 |
+| IT         | Italy         |         1 |
+| JP         | Japan         |         3 |
+| US         | United States |         2 |
+| ZA         | South Africa  |         4 |
++------------+---------------+-----------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT * FROM locations;
++-------------+---------------------+-------------+---------------+----------------+------------+
+| location_id | street_address      | postal_code | city          | state_province | country_id |
++-------------+---------------------+-------------+---------------+----------------+------------+
+|        1000 | Via Roma 100        | 00100       | Rome          | Lazio          | IT         |
+|        1700 | 2000 Broadway       | 94111       | San Francisco | California     | US         |
+|        1800 | Nishi Shinjuku 3-2  | 160-0023    | Tokyo         | Tokyo          | JP         |
+|        1900 | Block B, ITPL       | 560066      | Bangalore     | Karnataka      | IN         |
+|        2000 | 1 Mandela Way       | 8001        | Cape Town     | Western Cape   | ZA         |
+|        2100 | 123 Connaught Place | 110001      | Delhi         | Delhi          | IN         |
++-------------+---------------------+-------------+---------------+----------------+------------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM departments;
++---------------+-----------------+-------------+
+| department_id | department_name | location_id |
++---------------+-----------------+-------------+
+|            10 | Administration  |        1000 |
+|            20 | Marketing       |        1700 |
+|            30 | Sales           |        1700 |
+|            40 | Finance         |        1800 |
+|            50 | IT              |        1900 |
++---------------+-----------------+-------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT * FROM employees;
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                 | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+|         101 | John       | Doe       | jdoe@example.com      | 1234567890   | 2020-01-15 | J01    | 12000.00 |       NULL |            10 |
+|         102 | Jane       | Smith     | jsmith@example.com    | 9876543210   | 2019-03-10 | J02    |  8000.00 |        101 |            20 |
+|         103 | Alice      | Johnson   | ajohnson@example.com  | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
+|         104 | Robert     | Taylor    | rtaylor@example.com   | 8889990000   | 2021-07-01 | J04    | 11000.00 |        102 |            40 |
+|         105 | Linda      | Williams  | lwilliams@example.com | 4445556666   | 2022-05-12 | J05    |  9500.00 |        103 |            50 |
+|         106 | Mark       | Brown     | mbrown@example.com    | 9998887777   | 2024-01-10 | J05    | 11000.00 |        105 |            50 |
+|         109 | Zara       | Ali       | zali@example.com      | 3334445555   | 2024-02-01 | J01    |  9000.00 |       NULL |            10 |
+|         110 | Ravi       | Sharma    | rsharma@example.com   | 9998887777   | 2024-03-15 | J01    |  8500.00 |       NULL |            20 |
+|         111 | Smith      | David     | dsmith@example.com    | 8887776666   | 2024-04-01 | J03    |     NULL |       NULL |            40 |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+9 rows in set (0.00 sec)
+
+mysql> SELECT * FROM dependents;
++--------------+------------+-----------+--------------+-------------+
+| dependent_id | first_name | last_name | relationship | employee_id |
++--------------+------------+-----------+--------------+-------------+
+|            1 | Anna       | Doe       | Daughter     |         101 |
+|            2 | Michael    | Smith     | Son          |         102 |
+|            3 | Emily      | Johnson   | Spouse       |         103 |
+|            4 | Sophia     | Taylor    | Daughter     |         104 |
+|            5 | James      | Williams  | Son          |         105 |
++--------------+------------+-----------+--------------+-------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT * FROM jobs;
++--------+----------------------+------------+------------+
+| job_id | job_title            | min_salary | max_salary |
++--------+----------------------+------------+------------+
+| J01    | Administrator        |   10000.00 |   15000.00 |
+| J02    | Marketing Specialist |    7000.00 |   12000.00 |
+| J03    | Sales Manager        |   12000.00 |   18000.00 |
+| J04    | Finance Analyst      |   10000.00 |   14000.00 |
+| J05    | IT Specialist        |    9000.00 |   13000.00 |
++--------+----------------------+------------+------------+
+5 rows in set (0.00 sec)
+
+mysql> 
+mysql> SELECT e.* FROM employees e JOIN departments d ON e.department_id=d.department_id WHERE d.location_id=1700;
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+|         102 | Jane       | Smith     | jsmith@example.com   | 9876543210   | 2019-03-10 | J02    |  8000.00 |        101 |            20 |
+|         110 | Ravi       | Sharma    | rsharma@example.com  | 9998887777   | 2024-03-15 | J01    |  8500.00 |       NULL |            20 |
+|         103 | Alice      | Johnson   | ajohnson@example.com | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT e.* FROM employees e JOIN departments d ON e.department_id=d.department_id WHERE d.location_id!=1700;
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                 | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+|         101 | John       | Doe       | jdoe@example.com      | 1234567890   | 2020-01-15 | J01    | 12000.00 |       NULL |            10 |
+|         109 | Zara       | Ali       | zali@example.com      | 3334445555   | 2024-02-01 | J01    |  9000.00 |       NULL |            10 |
+|         104 | Robert     | Taylor    | rtaylor@example.com   | 8889990000   | 2021-07-01 | J04    | 11000.00 |        102 |            40 |
+|         111 | Smith      | David     | dsmith@example.com    | 8887776666   | 2024-04-01 | J03    |     NULL |       NULL |            40 |
+|         105 | Linda      | Williams  | lwilliams@example.com | 4445556666   | 2022-05-12 | J05    |  9500.00 |        103 |            50 |
+|         106 | Mark       | Brown     | mbrown@example.com    | 9998887777   | 2024-01-10 | J05    | 11000.00 |        105 |            50 |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM employees WHERE salary=(SELECT MAX(salary) FROM employees);
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+|         103 | Alice      | Johnson   | ajohnson@example.com | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM employees WHERE salary>(SELECT AVG(salary) FROM employees);
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+|         101 | John       | Doe       | jdoe@example.com     | 1234567890   | 2020-01-15 | J01    | 12000.00 |       NULL |            10 |
+|         103 | Alice      | Johnson   | ajohnson@example.com | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
+|         104 | Robert     | Taylor    | rtaylor@example.com  | 8889990000   | 2021-07-01 | J04    | 11000.00 |        102 |            40 |
+|         106 | Mark       | Brown     | mbrown@example.com   | 9998887777   | 2024-01-10 | J05    | 11000.00 |        105 |            50 |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT department_id,department_name FROM departments WHERE department_id IN (SELECT DISTINCT department_id FROM employees WHERE salary>10000);
++---------------+-----------------+
+| department_id | department_name |
++---------------+-----------------+
+|            10 | Administration  |
+|            30 | Sales           |
+|            40 | Finance         |
+|            50 | IT              |
++---------------+-----------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT department_id,department_name FROM departments WHERE department_id NOT IN (SELECT DISTINCT department_id FROM employees WHERE salary>10000);
++---------------+-----------------+
+| department_id | department_name |
++---------------+-----------------+
+|            20 | Marketing       |
++---------------+-----------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM employees WHERE salary>ANY (SELECT MIN(salary) FROM employees WHERE salary IS NOT NULL GROUP BY department_id);
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                 | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+|         101 | John       | Doe       | jdoe@example.com      | 1234567890   | 2020-01-15 | J01    | 12000.00 |       NULL |            10 |
+|         103 | Alice      | Johnson   | ajohnson@example.com  | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
+|         104 | Robert     | Taylor    | rtaylor@example.com   | 8889990000   | 2021-07-01 | J04    | 11000.00 |        102 |            40 |
+|         105 | Linda      | Williams  | lwilliams@example.com | 4445556666   | 2022-05-12 | J05    |  9500.00 |        103 |            50 |
+|         106 | Mark       | Brown     | mbrown@example.com    | 9998887777   | 2024-01-10 | J05    | 11000.00 |        105 |            50 |
+|         109 | Zara       | Ali       | zali@example.com      | 3334445555   | 2024-02-01 | J01    |  9000.00 |       NULL |            10 |
+|         110 | Ravi       | Sharma    | rsharma@example.com   | 9998887777   | 2024-03-15 | J01    |  8500.00 |       NULL |            20 |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT * FROM employees WHERE salary>=ALL (SELECT MAX(salary) FROM employees WHERE salary IS NOT NULL GROUP BY department_id);
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+|         103 | Alice      | Johnson   | ajohnson@example.com | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT AVG(dept_avg) FROM (SELECT AVG(salary) AS dept_avg FROM employees WHERE salary IS NOT NULL GROUP BY department_id) AS t;
++------------------+
+| AVG(dept_avg)    |
++------------------+
+| 11000.0000000000 |
++------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT first_name,last_name,salary,(SELECT AVG(salary) FROM employees WHERE salary IS NOT NULL) AS avg_salary,salary-(SELECT AVG(salary) FROM employees WHERE salary IS NOT NULL) AS difference FROM employees WHERE salary IS NOT NULL;
++------------+-----------+----------+--------------+--------------+
+| first_name | last_name | salary   | avg_salary   | difference   |
++------------+-----------+----------+--------------+--------------+
+| John       | Doe       | 12000.00 | 10500.000000 |  1500.000000 |
+| Jane       | Smith     |  8000.00 | 10500.000000 | -2500.000000 |
+| Alice      | Johnson   | 15000.00 | 10500.000000 |  4500.000000 |
+| Robert     | Taylor    | 11000.00 | 10500.000000 |   500.000000 |
+| Linda      | Williams  |  9500.00 | 10500.000000 | -1000.000000 |
+| Mark       | Brown     | 11000.00 | 10500.000000 |   500.000000 |
+| Zara       | Ali       |  9000.00 | 10500.000000 | -1500.000000 |
+| Ravi       | Sharma    |  8500.00 | 10500.000000 | -2000.000000 |
++------------+-----------+----------+--------------+--------------+
+8 rows in set (0.00 sec)
+
+mysql> SELECT e1.* FROM employees e1 WHERE e1.salary>(SELECT AVG(e2.salary) FROM employees e2 WHERE e2.department_id=e1.department_id);
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email               | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+|         101 | John       | Doe       | jdoe@example.com    | 1234567890   | 2020-01-15 | J01    | 12000.00 |       NULL |            10 |
+|         106 | Mark       | Brown     | mbrown@example.com  | 9998887777   | 2024-01-10 | J05    | 11000.00 |        105 |            50 |
+|         110 | Ravi       | Sharma    | rsharma@example.com | 9998887777   | 2024-03-15 | J01    |  8500.00 |       NULL |            20 |
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM employees WHERE employee_id NOT IN (SELECT employee_id FROM dependents);
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email               | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+|         106 | Mark       | Brown     | mbrown@example.com  | 9998887777   | 2024-01-10 | J05    | 11000.00 |        105 |            50 |
+|         109 | Zara       | Ali       | zali@example.com    | 3334445555   | 2024-02-01 | J01    |  9000.00 |       NULL |            10 |
+|         110 | Ravi       | Sharma    | rsharma@example.com | 9998887777   | 2024-03-15 | J01    |  8500.00 |       NULL |            20 |
+|         111 | Smith      | David     | dsmith@example.com  | 8887776666   | 2024-04-01 | J03    |     NULL |       NULL |            40 |
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT e.first_name,e.last_name,d.department_name FROM employees e JOIN departments d ON e.department_id=d.department_id WHERE e.department_id IN (10,20,30);
++------------+-----------+-----------------+
+| first_name | last_name | department_name |
++------------+-----------+-----------------+
+| John       | Doe       | Administration  |
+| Zara       | Ali       | Administration  |
+| Jane       | Smith     | Marketing       |
+| Ravi       | Sharma    | Marketing       |
+| Alice      | Johnson   | Sales           |
++------------+-----------+-----------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT e.first_name,e.last_name,j.job_title,d.department_name FROM employees e JOIN departments d ON e.department_id=d.department_id JOIN jobs j ON e.job_id=j.job_id WHERE e.department_id IN (10,20,30) AND e.salary>10000;
++------------+-----------+---------------+-----------------+
+| first_name | last_name | job_title     | department_name |
++------------+-----------+---------------+-----------------+
+| John       | Doe       | Administrator | Administration  |
+| Alice      | Johnson   | Sales Manager | Sales           |
++------------+-----------+---------------+-----------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT d.department_name,l.street_address,l.postal_code,c.country_name,r.region_name FROM departments d JOIN locations l ON d.location_id=l.location_id JOIN countries c ON l.country_id=c.country_id JOIN regions r ON c.region_id=r.region_id;
++-----------------+--------------------+-------------+---------------+-------------+
+| department_name | street_address     | postal_code | country_name  | region_name |
++-----------------+--------------------+-------------+---------------+-------------+
+| Administration  | Via Roma 100       | 00100       | Italy         | Europe      |
+| Marketing       | 2000 Broadway      | 94111       | United States | Americas    |
+| Sales           | 2000 Broadway      | 94111       | United States | Americas    |
+| IT              | Block B, ITPL      | 560066      | India         | Asia        |
+| Finance         | Nishi Shinjuku 3-2 | 160-0023    | Japan         | Asia        |
++-----------------+--------------------+-------------+---------------+-------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT e.first_name,e.last_name,e.department_id,d.department_name FROM employees e LEFT JOIN departments d ON e.department_id=d.department_id;
++------------+-----------+---------------+-----------------+
+| first_name | last_name | department_id | department_name |
++------------+-----------+---------------+-----------------+
+| John       | Doe       |            10 | Administration  |
+| Jane       | Smith     |            20 | Marketing       |
+| Alice      | Johnson   |            30 | Sales           |
+| Robert     | Taylor    |            40 | Finance         |
+| Linda      | Williams  |            50 | IT              |
+| Mark       | Brown     |            50 | IT              |
+| Zara       | Ali       |            10 | Administration  |
+| Ravi       | Sharma    |            20 | Marketing       |
+| Smith      | David     |            40 | Finance         |
++------------+-----------+---------------+-----------------+
+9 rows in set (0.00 sec)
+
+mysql> SELECT e.first_name,e.last_name,d.department_name,l.city,l.state_province FROM employees e JOIN departments d ON e.department_id=d.department_id JOIN locations l ON d.location_id=l.location_id WHERE e.first_name LIKE '%Z%';
++------------+-----------+-----------------+------+----------------+
+| first_name | last_name | department_name | city | state_province |
++------------+-----------+-----------------+------+----------------+
+| Zara       | Ali       | Administration  | Rome | Lazio          |
++------------+-----------+-----------------+------+----------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT e.first_name,e.last_name,d.department_id,d.department_name FROM departments d LEFT JOIN employees e ON d.department_id=e.department_id;
++------------+-----------+---------------+-----------------+
+| first_name | last_name | department_id | department_name |
++------------+-----------+---------------+-----------------+
+| Zara       | Ali       |            10 | Administration  |
+| John       | Doe       |            10 | Administration  |
+| Ravi       | Sharma    |            20 | Marketing       |
+| Jane       | Smith     |            20 | Marketing       |
+| Alice      | Johnson   |            30 | Sales           |
+| Smith      | David     |            40 | Finance         |
+| Robert     | Taylor    |            40 | Finance         |
+| Mark       | Brown     |            50 | IT              |
+| Linda      | Williams  |            50 | IT              |
++------------+-----------+---------------+-----------------+
+9 rows in set (0.00 sec)
+
+mysql> SELECT e.first_name AS employee_first_name,m.first_name AS manager_first_name FROM employees e LEFT JOIN employees m ON e.manager_id=m.employee_id;
++---------------------+--------------------+
+| employee_first_name | manager_first_name |
++---------------------+--------------------+
+| John                | NULL               |
+| Jane                | John               |
+| Alice               | John               |
+| Robert              | Jane               |
+| Linda               | Alice              |
+| Mark                | Linda              |
+| Zara                | NULL               |
+| Ravi                | NULL               |
+| Smith               | NULL               |
++---------------------+--------------------+
+9 rows in set (0.00 sec)
+
+mysql> SELECT first_name,last_name,department_id FROM employees WHERE department_id=(SELECT department_id FROM employees WHERE last_name='Taylor');
++------------+-----------+---------------+
+| first_name | last_name | department_id |
++------------+-----------+---------------+
+| Robert     | Taylor    |            40 |
+| Smith      | David     |            40 |
++------------+-----------+---------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT j.job_title,CONCAT(e.first_name,' ',e.last_name) AS employee_name,(j.max_salary-e.salary) AS salary_difference FROM employees e JOIN jobs j ON e.job_id=j.job_id WHERE e.salary IS NOT NULL;
++----------------------+----------------+-------------------+
+| job_title            | employee_name  | salary_difference |
++----------------------+----------------+-------------------+
+| Administrator        | John Doe       |           3000.00 |
+| Marketing Specialist | Jane Smith     |           4000.00 |
+| Sales Manager        | Alice Johnson  |           3000.00 |
+| Finance Analyst      | Robert Taylor  |           3000.00 |
+| IT Specialist        | Linda Williams |           3500.00 |
+| IT Specialist        | Mark Brown     |           2000.00 |
+| Administrator        | Zara Ali       |           6000.00 |
+| Administrator        | Ravi Sharma    |           6500.00 |
++----------------------+----------------+-------------------+
+8 rows in set (0.00 sec)
+
+mysql> SELECT d.department_name,AVG(e.salary) AS average_salary,COUNT(e.employee_id) AS number_of_employees FROM departments d LEFT JOIN employees e ON d.department_id=e.department_id GROUP BY d.department_id,d.department_name;
++-----------------+----------------+---------------------+
+| department_name | average_salary | number_of_employees |
++-----------------+----------------+---------------------+
+| Administration  |   10500.000000 |                   2 |
+| Marketing       |    8250.000000 |                   2 |
+| Sales           |   15000.000000 |                   1 |
+| Finance         |   11000.000000 |                   2 |
+| IT              |   10250.000000 |                   2 |
++-----------------+----------------+---------------------+
+5 rows in set (0.00 sec)
+
+mysql> CREATE VIEW delhi_employees AS SELECT CONCAT(e.first_name,' ',e.last_name) AS employee_name,e.employee_id,e.phone_number,j.job_title,d.department_name,CONCAT(m.first_name,' ',m.last_name) AS manager_name FROM employees e JOIN departments d ON e.department_id=d.department_id JOIN locations l ON d.location_id=l.location_id JOIN jobs j ON e.job_id=j.job_id LEFT JOIN employees m ON e.manager_id=m.employee_id WHERE l.city='Delhi';
+Query OK, 0 rows affected (0.19 sec)
+
+mysql> SELECT * FROM delhi_employees;
+Empty set (0.00 sec)
+
+mysql> SELECT * FROM delhi_employees WHERE job_title='Manager' AND department_name='Finance';
+Empty set (0.01 sec)
+
+mysql> SELECT e.* FROM employees e LEFT JOIN dependents d ON e.employee_id=d.employee_id WHERE d.dependent_id IS NULL;
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email               | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+|         106 | Mark       | Brown     | mbrown@example.com  | 9998887777   | 2024-01-10 | J05    | 11000.00 |        105 |            50 |
+|         109 | Zara       | Ali       | zali@example.com    | 3334445555   | 2024-02-01 | J01    |  9000.00 |       NULL |            10 |
+|         110 | Ravi       | Sharma    | rsharma@example.com | 9998887777   | 2024-03-15 | J01    |  8500.00 |       NULL |            20 |
+|         111 | Smith      | David     | dsmith@example.com  | 8887776666   | 2024-04-01 | J03    |     NULL |       NULL |            40 |
++-------------+------------+-----------+---------------------+--------------+------------+--------+----------+------------+---------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT * FROM employees WHERE manager_id=101 UNION SELECT * FROM employees WHERE manager_id=201;
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+|         102 | Jane       | Smith     | jsmith@example.com   | 9876543210   | 2019-03-10 | J02    |  8000.00 |        101 |            20 |
+|         103 | Alice      | Johnson   | ajohnson@example.com | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
++-------------+------------+-----------+----------------------+--------------+------------+--------+----------+------------+---------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT DISTINCT e.* FROM employees e JOIN dependents d ON e.employee_id=d.employee_id;
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+| employee_id | first_name | last_name | email                 | phone_number | hire_date  | job_id | salary   | manager_id | department_id |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+|         101 | John       | Doe       | jdoe@example.com      | 1234567890   | 2020-01-15 | J01    | 12000.00 |       NULL |            10 |
+|         102 | Jane       | Smith     | jsmith@example.com    | 9876543210   | 2019-03-10 | J02    |  8000.00 |        101 |            20 |
+|         103 | Alice      | Johnson   | ajohnson@example.com  | 5556667777   | 2018-11-25 | J03    | 15000.00 |        101 |            30 |
+|         104 | Robert     | Taylor    | rtaylor@example.com   | 8889990000   | 2021-07-01 | J04    | 11000.00 |        102 |            40 |
+|         105 | Linda      | Williams  | lwilliams@example.com | 4445556666   | 2022-05-12 | J05    |  9500.00 |        103 |            50 |
++-------------+------------+-----------+-----------------------+--------------+------------+--------+----------+------------+---------------+
+5 rows in set (0.00 sec)
+
